@@ -1,5 +1,6 @@
-# 1 = quality score below the dataset mean (82.2).
+# 1 when wine_quality is at or below 82.11 (wine_quality_bin k=0).
 name: low_q
 label: Low-q
-target: wine_quality_low_mean
+kind: classification
+quality_k: 0
 classes: [0, 1]

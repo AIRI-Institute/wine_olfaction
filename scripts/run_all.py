@@ -30,6 +30,14 @@ from step5_visualize import write_tables  # noqa: E402
 CLAIMS_DIR = RUNS_DIR / "claims"
 
 
+def _allowed(requested, cfg, key):
+    """Yaml smooths/drifts narrow the command-line grid. A task without the key keeps the request."""
+    limited = cfg.get(key)
+    if not limited:
+        return list(requested)
+    return [value for value in requested if value in limited]
+
+
 def units(a):
     """Every (cfg, data, task, model, smooth, drift, split, run) of the selected grid."""
     out = []
@@ -39,11 +47,11 @@ def units(a):
             cfg["n_epochs"] = a.epochs
         if a.repeats is not None:
             cfg["n_repeats"] = a.repeats
-        for smooth in a.smooths:
+        for smooth in _allowed(a.smooths, cfg, "smooths"):
             data = load_task(cfg, smooth)
             for split in a.splits:
                 runs = make_runs(split, data, cfg)
-                for drift in a.drifts:
+                for drift in _allowed(a.drifts, cfg, "drifts"):
                     for model in a.models:
                         out += [(cfg, data, task, model, smooth, drift, split, run) for run in runs]
     return out
@@ -86,10 +94,17 @@ def main(a):
         try:
             if not part.exists():
                 results = train_run(model, drift, data, cfg, seed, train_idx, evals)
-                rows = save_part(task, model, smooth, drift, split, run_id, results, len(data["classes"]))
+                rows = save_part(task, model, smooth, drift, split, run_id, results, len(data["classes"]),
+                                 cfg.get("kind", "classification"), pr_auc_macro=cfg.get("pr_auc") == "macro")
                 n_done += 1
+                bits = []
+                for r in rows:
+                    if r["r2"] == r["r2"]:
+                        bits.append(f"{r['split']}:r2={r['r2']:.3f}")
+                    else:
+                        bits.append(f"{r['split']}:acc={r['acc']:.3f}")
                 print(f"[run] {task} {model} {smooth} {drift} {split} {run_id} {time.time() - t0:.0f}s "
-                      + " ".join(f"{r['split']}:acc={r['acc']:.3f}" for r in rows), flush=True)
+                      + " ".join(bits), flush=True)
         except Exception:
             print(f"[fail] {task} {model} {smooth} {drift} {split} {run_id}", flush=True)
             traceback.print_exc()

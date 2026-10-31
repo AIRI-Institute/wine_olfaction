@@ -21,14 +21,26 @@ def set_seed(seed):
 
 
 def fit_predict_torch(model_name, X, y, train_idx, test_idx, n_classes, cfg, seed):
-    """Train on train_idx, return class probabilities for test_idx."""
+    """Train on train_idx. Classification returns class probabilities; regression returns a scalar."""
     set_seed(seed)
     dev = device()
     Xt = torch.tensor(X, dtype=torch.float32)
-    Y = torch.tensor(np.eye(n_classes, dtype=np.float32)[y])
-    model = create_model(model_name, in_channels=X.shape[1], num_classes=n_classes).to(dev)
+    regression = cfg.get("kind") == "regression"
+    multilabel = cfg.get("kind") == "multilabel"
+    if regression:
+        Y = torch.tensor(np.asarray(y, dtype=np.float32)).unsqueeze(1)
+        n_out = 1
+        loss_fn = nn.MSELoss()
+    elif multilabel:
+        Y = torch.tensor(np.asarray(y, dtype=np.float32))
+        n_out = Y.shape[1]
+        loss_fn = nn.BCEWithLogitsLoss()
+    else:
+        Y = torch.tensor(np.eye(n_classes, dtype=np.float32)[y])
+        n_out = n_classes
+        loss_fn = nn.BCEWithLogitsLoss()
+    model = create_model(model_name, in_channels=X.shape[1], num_classes=n_out).to(dev)
     opt = torch.optim.Adam(model.parameters(), lr=cfg["learning_rate"])
-    loss_fn = nn.BCEWithLogitsLoss()
     bs = cfg["batch_size"]
     tr = np.asarray(train_idx)
     for _ in range(cfg["n_epochs"]):
@@ -42,9 +54,15 @@ def fit_predict_torch(model_name, X, y, train_idx, test_idx, n_classes, cfg, see
             loss.backward()
             opt.step()
     model.eval()
-    probs = []
+    out = []
     with torch.no_grad():
         te = np.asarray(test_idx)
         for s in range(0, len(te), bs):
-            probs.append(torch.softmax(model(Xt[te[s:s + bs]].to(dev)), dim=1).cpu().numpy())
-    return np.concatenate(probs)
+            pred = model(Xt[te[s:s + bs]].to(dev))
+            if multilabel:
+                pred = torch.sigmoid(pred)
+            elif not regression:
+                pred = torch.softmax(pred, dim=1)
+            out.append(pred.cpu().numpy())
+    pred = np.concatenate(out)
+    return pred.reshape(-1) if regression else pred

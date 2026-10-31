@@ -1,0 +1,6 @@
+# 1 when wine_quality is at or below 65.63 (wine_quality_bin k=3).
+name: low_q_k3
+label: Low-q k=3
+kind: classification
+quality_k: 3
+classes: [0, 1]

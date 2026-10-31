@@ -143,7 +143,20 @@ def vote(z, y, train_idx, test_idx, n_classes, k):
     return scores / scores.sum(axis=1, keepdims=True)
 
 
+def neighbor_mean(z, y, train_idx, test_idx, k):
+    """Mean target of the same cosine neighbours vote() would use."""
+    sims = z[test_idx] @ z[train_idx].T
+    k = min(k, len(train_idx))
+    top = np.argsort(-sims, axis=1)[:, :k]
+    return y[train_idx][top].mean(axis=1)
+
+
 def fit_predict_retrieval(name, X, y, train_idx, test_idx, n_classes, cfg, seed):
     z = embed(name, X, train_idx, cfg, seed)
     k = min(n_classes, K_MAX) if name == "knn_pca" else 1
+    if cfg.get("kind") == "regression":
+        k = min(K_MAX, len(train_idx)) if name == "knn_pca" else 1
+        return neighbor_mean(z, y, train_idx, test_idx, k)
+    if cfg.get("kind") == "multilabel":
+        return neighbor_mean(z, y, train_idx, test_idx, k)
     return vote(z, y, train_idx, test_idx, n_classes, k)

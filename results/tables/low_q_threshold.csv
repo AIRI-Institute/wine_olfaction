@@ -1,0 +1,6 @@
+k,score_cutoff,pos_rate,best_model,roc_auc,pr_auc
+0,82.11,36.479,MLSTMfcn,0.802,0.639
+1,76.73,9.619,CNNLSTM4,0.811,0.413
+2,70.33,4.174,Transformer,0.716,0.252
+3,65.63,1.27,LSTMNet,0.693,0.096
+4,61.33,0.0,,,

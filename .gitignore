@@ -2,6 +2,7 @@ data/processed/
 data/private/
 data/translation/
 results/runs/
+results/plans/
 logs/
 __pycache__/
 slurm/

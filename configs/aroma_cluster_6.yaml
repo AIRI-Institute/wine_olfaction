@@ -1,0 +1,12 @@
+# One label per wine from aroma_cluster_6.
+name: aroma_cluster_6
+label: aroma_cluster_6
+target: aroma_cluster_6
+split_on: aroma_cluster_6
+classes:
+  - berries
+  - tree_fruit
+  - citrus
+  - dried_fruit
+  - fruit_unmentioned
+  - bad

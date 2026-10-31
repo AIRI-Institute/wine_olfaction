@@ -1,0 +1,17 @@
+# One family from aroma_family_8. Blank cells are scored out after the cluster fold is fixed.
+name: aroma_family_8
+label: aroma_family_8
+target: aroma_family_8
+split_on: aroma_cluster_6
+pr_auc: macro
+smooths: [no_lowess]
+drifts: [none]
+classes:
+  - Fruity
+  - Floral
+  - Herbaceous/vegetative
+  - Spicy
+  - Caramelized
+  - Burned
+  - Earthy
+  - Wood

@@ -11,7 +11,11 @@ CONFIG_DIR = ROOT / "configs"
 RUNS_DIR = ROOT / "results" / "runs"
 TABLES_DIR = ROOT / "results" / "tables"
 
-TASKS = ["color2", "color3", "abv_b", "aroma_markup_ce", "low_q"]
+TASKS = [
+    "color2", "color3", "abv_b", "abv",
+    "aroma_cluster_6", "aroma_families_12", "aroma_family_8", "aroma_descriptors_13",
+    "low_q", "low_q_k1", "low_q_k2", "low_q_k3",
+]
 NAIVE = ["Naive"]
 CLASSICAL = ["rf", "xgb", "plsda", "svm"]
 NEURAL = ["MLSTMfcn", "Transformer", "CNNLSTM4", "CNN1DClassifier", "LSTMNet", "EmissionCNN1DLSTM"]

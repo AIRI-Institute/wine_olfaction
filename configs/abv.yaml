@@ -1,0 +1,4 @@
+# Continuous alcohol: (strength_low + strength_high) / 2 on the kept measurement.
+name: abv
+label: ABV
+kind: regression

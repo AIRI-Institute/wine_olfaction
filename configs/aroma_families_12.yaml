@@ -1,0 +1,21 @@
+# Multilabel list from aroma_families_12. Folds come from aroma_cluster_6.
+name: aroma_families_12
+label: aroma_families_12
+kind: multilabel
+target: aroma_families_12
+split_on: aroma_cluster_6
+smooths: [no_lowess]
+drifts: [none]
+classes:
+  - Fruity
+  - Floral
+  - Herbaceous/vegetative
+  - Spicy
+  - Caramelized
+  - Chemical
+  - Wood
+  - Nutty
+  - Burned
+  - Oxidized
+  - Earthy
+  - Microbiological

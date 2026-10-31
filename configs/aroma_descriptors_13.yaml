@@ -1,0 +1,22 @@
+# Multilabel list from aroma_descriptors_13. Folds come from aroma_cluster_6.
+name: aroma_descriptors_13
+label: aroma_descriptors_13
+kind: multilabel
+target: aroma_descriptors_13
+split_on: aroma_cluster_6
+smooths: [no_lowess]
+drifts: [none]
+classes:
+  - cherry
+  - lemon
+  - green_vegetal
+  - apple
+  - blackcurrant
+  - black_plum
+  - orange
+  - pear
+  - peach
+  - blackberry
+  - blossom
+  - black_cherry
+  - grass
