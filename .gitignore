@@ -1,0 +1,11 @@
+data/processed/
+data/private/
+data/translation/
+results/runs/
+logs/
+__pycache__/
+slurm/
+.DS_Store
+utils.py
+~$*
+push_ecir.sh

@@ -1,0 +1,5 @@
+# 1 = quality score below the dataset mean (82.2).
+name: low_q
+label: Low-q
+target: wine_quality_low_mean
+classes: [0, 1]

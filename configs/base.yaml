@@ -1,0 +1,10 @@
+# Shared settings for every task (ICDM values).
+random_state: 42
+train_val_test_ratio: [4, 1, 1]
+n_folds: 5
+n_repeats: 5            # every model: 5 folds x 5 repeats = 25 fits
+n_epochs: 300
+batch_size: 1000
+learning_rate: 0.0001
+lowess_frac: 0.05
+pca_dim: 32

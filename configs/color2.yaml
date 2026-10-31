@@ -1,0 +1,4 @@
+name: color2
+label: Color-2
+target: color
+classes: [red, white]

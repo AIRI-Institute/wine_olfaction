@@ -1,0 +1,10 @@
+# One label per wine: the first of the six markup clusters that is set.
+name: aroma_markup_ce
+label: aroma_markup_ce
+target_columns:
+  - aroma_markup_berries
+  - aroma_markup_tree_fruit
+  - aroma_markup_citrus
+  - aroma_markup_dried_fruit
+  - aroma_markup_fruit_unmentioned
+  - aroma_markup_bad
