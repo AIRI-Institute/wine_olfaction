@@ -15,10 +15,6 @@ It supports two families of methods on the same tasks:
 - **content-based retrieval** (a query trace is labeled from its nearest gallery traces:
 kNN on PCA features, cosine similarity of self-supervised and curve-fit embeddings).
 
-Because the sensor array drifts across the six-day campaign and within each day,
-the repository ships a **leave-one-day-out (LODO)** protocol in which query and gallery
-come from different days, next to the usual split by wine label.
-
 Public repository: [https://github.com/AIRI-Institute/wine_olfaction](https://github.com/AIRI-Institute/wine_olfaction) (permanent archive with DOI: TODO).
 
 ## Contents
@@ -67,10 +63,6 @@ vocabulary. Three text fields hold the notes:
   - `digest_description`: colour, nose, palate and food pairing (515 rows);
   - `good_description`: a one-line verdict of the wine's merits (499 rows);
   - `tech_description`: the producer's technical sheet (wine type, alcohol, vintage, grapes, sugar).
-- **Aroma labels.** Four fields are derived from the notes. A plural name is a list; a singular name is one class.
-  - `aroma_families_12`: a list from 12 families (Fruity, Floral, Herbaceous/vegetative, Spicy, Caramelized, Chemical, Wood, Nutty, Burned, Oxidized, Earthy, Microbiological);
-  - `aroma_family_8`: one family from 8 of those (Fruity, Floral, Herbaceous/vegetative, Spicy, Caramelized, Burned, Earthy, Wood);
-  - `aroma_descriptors_13`: a list from 13 primary descriptors (`cherry` through `grass`), or `[]`;
   - `aroma_cluster_6`: one of 6 clusters (`berries`, `tree_fruit`, `citrus`, `dried_fruit`, `fruit_unmentioned`, `bad`).
 
 
@@ -86,7 +78,7 @@ vocabulary. Three text fields hold the notes:
 | Quality       | `wine_quality`, `wine_quality_low_mean` (1 if the score is at or below 82.11)                                                                                           |
 | Panel         | `R01`..`R29`                                                                                                                                                            |
 | Text          | `tech_description`, `digest_description`, `good_description`                                                                                                            |
-| Aroma         | `aroma_families_12`, `aroma_family_8`, `aroma_descriptors_13`, `aroma_cluster_6`, `aroma_labels_bad_wine_flags`                                                         |
+| Aroma         | `aroma_cluster_6`                                                                                                                                                       |
 
 
 Splits and deduplication use `code`.
@@ -120,15 +112,6 @@ varieties.
 - **Single-author notes.** Each tasting note is the work of one expert, whereas quality
 scores average 6 to 13 experts. Panel agreement: median per-wine std 2.6, median pairwise
 Pearson correlation 0.69.
-- **Missing values.**
-  - `strength_bins` is missing for 182 rows;
-  - `digest_description` is empty for 51 rows;
-  - a few notes are truncated in the source.
-
-- **Translation.** The English text is a translation. The Russian originals are available
-on request.
-
-
 
 ## Loading the data
 
@@ -157,9 +140,6 @@ print(meta[["code", "date", "color", "wine_quality", "digest_description"]].head
 | ABV-b        | `abv_b.yaml`           | `strength_bins`                      | 5 alcohol bins                                                   |
 | ABV          | `abv.yaml`             | `(strength_low + strength_high) / 2` | continuous alcohol (R2, MAE)                                     |
 | Aroma        | `aroma_cluster_6.yaml` | `aroma_cluster_6`                    | berries, tree_fruit, citrus, dried_fruit, fruit_unmentioned, bad |
-| Families-12  | `aroma_families_12.yaml` | `aroma_families_12`                | 12 families, multilabel                                          |
-| Family-8     | `aroma_family_8.yaml`  | `aroma_family_8`                     | 8 families, one label                                            |
-| Descriptors  | `aroma_descriptors_13.yaml` | `aroma_descriptors_13`          | 13 descriptors, multilabel                                       |
 | Low-q        | `low_q.yaml`           | `wine_quality_bin(wine_quality, 0)`  | 1 at or below 82.11                                              |
 | Low-q k=1..3 | `low_q_k{1,2,3}.yaml`  | `wine_quality_bin(wine_quality, k)`  | 1 at or below 76.73, 70.33, 65.63                                |
 
@@ -175,10 +155,8 @@ print(meta[["code", "date", "color", "wine_quality", "digest_description"]].head
   4. Each fit is scored twice: on its left-out fold (`cv`) and on the outer test (`holdout`). This gives 25 `cv` scores and 25 `holdout` scores per cell.
 
 Naive and retrieval models use the same 25 runs. For retrieval, the training rows are the gallery and the evaluation rows are the queries.
-- **Aroma folds.** `aroma_families_12`, `aroma_family_8`, `aroma_descriptors_13` and `aroma_cluster_6` share one split: the published outer 4:1:1 shuffle and `StratifiedKFold(5)` on `aroma_cluster_6`. The list targets do not draw their own folds. `aroma_family_8` removes its 47 blank cells only after that fold is fixed, so those wines leave training and scoring without moving any other wine. LODO is the same six days for every task.
 
-- **LODO.** Train on five measurement days, or use them as the gallery, and test on the
-sixth (6 runs).
+- **Aroma folds.** `aroma_cluster_6` share one split: the published outer 4:1:1 shuffle and `StratifiedKFold(5)` on `aroma_cluster_6`. 
 - **Preprocessing.** Keep the first measurement per `code`, z-score each (channel, time point)
 over the task rows, and optionally apply LOWESS (frac 0.05, `lowess` / `no_lowess`). The
 result is cached in `data/processed/{task}_{smooth}.npz`.
@@ -190,8 +168,7 @@ result is cached in `data/processed/{task}_{smooth}.npz`.
   (sin and cos of the `startTime` hour);
   - `day_residual`: subtract a ridge fit of every feature on a one-hot of the day.
 - **Metrics.** Accuracy, F1, ROC-AUC and, for binary tasks, PR-AUC are reported as mean +/- population std over runs. F1 is binary for 2-class tasks and macro otherwise. ROC-AUC is one-vs-rest. ROC-AUC and PR-AUC are undefined for `svm`, which emits hard labels only. ABV regression reports R2 and MAE instead. Classification also reports macro and micro precision. For a single label, micro precision equals accuracy.
-- **Aroma accuracy.** `aroma_cluster_6` and `aroma_family_8` score the argmax class. Accuracy is the fraction of evaluation rows whose predicted class equals the label. F1 is macro. ROC-AUC is one-vs-rest on the classes present in that evaluation set. `aroma_cluster_6` leaves PR-AUC empty. `aroma_family_8` fills PR-AUC with macro average precision. `subset_accuracy` stays empty for both.
-- **Aroma lists.** `aroma_families_12` and `aroma_descriptors_13` are multilabel. A label scores positive at probability 0.5. `acc` is Hamming accuracy, the fraction of label bits that are correct. `subset_accuracy` is the exact match of the whole set. F1 and `precision_macro` are macro. `precision_micro` is micro. ROC-AUC and PR-AUC are macro over labels that have both classes in that evaluation set. An empty list is the all-negative label.
+- **Aroma accuracy.** `aroma_cluster_6` score the argmax class. Accuracy is the fraction of evaluation rows whose predicted class equals the label. F1 is macro. ROC-AUC is one-vs-rest on the classes present in that evaluation set. `aroma_cluster_6` leaves PR-AUC empty.
 
 
 
@@ -213,10 +190,7 @@ python scripts/write_tables.py            # rebuild tables from results/runs/
 python scripts/run_all.py --tasks color2 --models rf knn_pca --drifts none --epochs 1 --repeats 1  # smoke test
 ```
 
-The grid is 12 tasks x 14 models x {`lowess`, `no_lowess`} x {`none`, `snorm`, `tod_residual`, `day_residual`} x {5x5 split, LODO}. `aroma_families_12`, `aroma_family_8` and `aroma_descriptors_13` stay on `no_lowess` and drift `none`. Each run writes one file,
-`results/runs/parts/{task}__{model}__{smooth}__{drift}/{split}__{run}.csv`, and
-`run_all.py` skips runs whose file exists. Several copies can run at once: each run is
-claimed with a lock file in `results/runs/claims/`. 
+The grid is 12 tasks x 14 models x {`lowess`, `no_lowess`} x {`none`, `snorm`, `tod_residual`, `day_residual`} x {5x5 split, LODO}. Each run writes one file: `results/runs/parts/{task}__{model}__{smooth}__{drift}/{split}__{run}.csv`, and `run_all.py` skips runs whose file exists.  
 
 
 | Step | File                     | Role                                                                                                                  |
@@ -234,7 +208,7 @@ Every table in `results/tables/` exists for each evaluation split `{split}` in `
 
 | CSV                     | Content                                                                                                                                                                                                          |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `all_runs.csv`          | mean and population std of acc, F1, roc_auc, pr_auc, subset_accuracy, precision_macro, precision_micro, r2 and mae for every task, model, split, smoothing and drift                                          |
+| `all_runs.csv`          | mean and population std of acc, F1, roc_auc, pr_auc, subset_accuracy, precision_macro, precision_micro, r2 and mae for every task, model, split, smoothing and drift                                             |
 | `low_q_threshold.csv`   | Low-quality detection vs. quality threshold: k, score cutoff, positive rate, best neural model on the holdout split by PR-AUC, and that model's ROC-AUC and PR-AUC. k=4 has no positives and no model            |
 | `naive_{split}.csv`     | Naive baseline in every smoothing x drift cell                                                                                                                                                                   |
 | `classical_{split}.csv` | `rf`, `xgb`, `plsda`, `svm` in every cell                                                                                                                                                                        |
@@ -244,25 +218,10 @@ Every table in `results/tables/` exists for each evaluation split `{split}` in `
 | `ir_wins.csv`           | metrics on which the best retrieval model beats the best end-to-end model, per split, `overall` and per cell                                                                                                     |
 
 
-All model families here use the single protocol above. The numbers in the submitted PDF came
-from earlier scripts, in which classical and retrieval models were scored on fold-test rows and
-the LODO neural models used a shorter training schedule. As a result, some cells can differ
-slightly from the PDF.
-
 ## License, maintenance, citation
 
 - **License.** Code and data are released under the Apache 2 (`LICENSE`).
-- **Maintenance.** Issues and corrections go through the GitHub repository. Releases are
-versioned, and any change to the data comes with a changelog entry and a regenerated
-`metadata.csv`.
-- **Citation:**
-
-```bibtex
-@inproceedings{winesmell2027,
-  title     = {Developing Smell-Aware Intelligence with a Large Wine Olfaction Dataset},
-  author    = {TODO},
-  booktitle = {Proceedings of the 49th European Conference on Information Retrieval (ECIR)},
-  year      = {2027}
-}
-```
+- **Maintenance.** Issues and corrections go through the GitHub repository. Releases are  
+versioned, and any change to the data comes with a changelog entry and a regenerated  
+`metadata.csv`
 
