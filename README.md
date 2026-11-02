@@ -19,7 +19,7 @@ Because the sensor array drifts across the six-day campaign and within each day,
 the repository ships a **leave-one-day-out (LODO)** protocol in which query and gallery
 come from different days, next to the usual split by wine label.
 
-Public repository: [https://github.com/alexnkorovin/wine_dataset](https://github.com/alexnkorovin/wine_dataset) (permanent archive with DOI: TODO).
+Public repository: [https://github.com/AIRI-Institute/wine_olfaction](https://github.com/AIRI-Institute/wine_olfaction) (permanent archive with DOI: TODO).
 
 ## Contents
 
