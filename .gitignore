@@ -10,3 +10,5 @@ slurm/
 utils.py
 ~$*
 push_ecir.sh
+Audit Results/
+paper/
