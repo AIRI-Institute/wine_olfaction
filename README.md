@@ -1,7 +1,7 @@
 # WineSmell: an e-nose wine olfaction collection for retrieval and classification
 
 This repository is the resource accompanying the ECIR 2027 Resource Track submission
-*Developing Smell-Aware Intelligence with a Large Wine Olfaction Dataset*
+*Developing Sensory Intelligence with a Wine Smell Dataset*
 ([call for resource papers](https://www.ecir2027.co.uk/call-for-resource-papers)).
 It contains the data, loaders, and code that reproduce the tables in the
 "End-to-end and retrieval comparison" section of the paper.
